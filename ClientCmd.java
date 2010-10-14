@@ -1,7 +1,7 @@
 import java.io.*;
 import java.net.*;
 
-public class Client {
+public class ClientCmd {
 
   public static void main(String[] args) throws Exception {
     Socket socket = null;
@@ -9,9 +9,6 @@ public class Client {
     BufferedReader in = null;
  
     String tag = args[0];
-    /*** my code **/
-    Player player = new Player(tag);
-
     try {
       socket = new Socket("localhost", 4445);
       out = new PrintWriter(socket.getOutputStream(), true);
@@ -36,10 +33,7 @@ public class Client {
         break;
       if (((fromServer.startsWith("ADD")) || (fromServer.startsWith("REMOVE"))))
       {
-        //replace here with an output from my code
-        player.setStatus(fromServer);
         fromUser = stdIn.readLine();
-        //fromUser = player.play();
         if (fromUser != null) {
           //System.out.println("Client: " + fromUser);
           

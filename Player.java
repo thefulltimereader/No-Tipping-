@@ -1,4 +1,7 @@
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
@@ -11,8 +14,10 @@ public class Player {
   private HashMap<Integer, Integer> _occupied = new HashMap<Integer, Integer>();
   private Double _rightTorque;
   private Double _leftTorque;
+  private int _numOfWeights;
   public Player(String name){
     _name = name;
+    _numOfWeights = 10;
   }
   public void setMode(int state){
     _mode = state;
@@ -98,5 +103,79 @@ public class Player {
   private boolean isBad(){
     if (_rightTorque > 0 || _leftTorque > 0) return true;
     return false;
+  }
+  private List<ChoicePair>buildChoices(){
+    Set<Integer> takenPositions = _occupied.keySet();
+    Collection<Integer> takenWeights = _occupied.values(); 
+    ArrayList<ChoicePair> possibilities = new ArrayList<ChoicePair>();
+    for(int i=0; i<31;i++){
+      if(!takenPositions.contains(i)){
+        for(int j=0; j<_numOfWeights;j++){
+          if(!takenWeights.contains(j)) possibilities.add(new ChoicePair(i, j));
+        }
+      }
+    }
+    return possibilities;
+  }
+  /**
+   * Calculate heuristic scores for each node.
+   * This builds a tree
+   * Smaller the score the better
+   * Scores are based on as far as you can go within certain time limits
+   * The number of options you leave to the opponent
+   * The number of options that leaves you in the next level
+   * The heavier the weight, the worse
+   * @param position
+   * @param weight
+   * @param choices of positions and weights
+   * @return
+   */
+  private double getScore(int position, int weight, List<Integer> choices){
+    
+    return 0.0;
+  }
+  private ChoicePair findBest(List<ChoicePair> possibilities){
+    if(possibilities.size()==1) return possibilities.get(0);
+    else{
+      //remove all the impossible choices, build a new possibilities list
+      //recurse
+    }
+    return null;
+  }
+  
+  
+  class ChoicePair{
+    private int position;
+    private int weight;
+    ChoicePair(int position, int weight){
+      this.position = position;
+      this.weight = weight;
+    }
+    
+    boolean willTip(){
+      double rightT,leftT = 0.0; 
+      double in1=0,out1=0,in3=0,out3=0;
+      Set<Integer> s = _occupied.keySet();
+      for (Integer i: s){
+        int pos = i;
+        int wt;
+        wt = _occupied.get(pos); 
+        if (pos < -3)
+          out3 += (-1) * (pos-(-3)) * wt;
+        else
+          in3 += pos-(-3)* wt;
+        if (pos < -1)
+          out1 += (-1) * (pos-(-1)) * wt;
+        else
+          in1 += pos-(-1)* wt;
+      }
+      rightT= in1 - out1;
+      leftT = out3 - in3;
+      if(rightT>0 || leftT>0) return true;
+      return false;
+    
+    }
+    
+    
   }
 }

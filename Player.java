@@ -73,6 +73,10 @@ public class Player {
    */	
   private void calculate_torque() {		
     double in1=0,out1=0,in3=0,out3=0;
+  //the board weights 3 kgs which is concentrated at 0, so there is some intorque at -3 and -1
+    in3 += 9;
+    in1 += 3;
+    
     Set<Integer> s = _occupied.keySet();
     for (Integer i: s){
       int pos = i;
@@ -130,17 +134,21 @@ public class Player {
    * @param choices of positions and weights
    * @return
    */
-  private double getScore(int position, int weight, List<Integer> choices){
+  private double getScore(ChoicePair node, List<ChoicePair> choices){
     
     return 0.0;
   }
-  private ChoicePair findBest(List<ChoicePair> possibilities){
-    if(possibilities.size()==1) return possibilities.get(0);
-    else{
-      //remove all the impossible choices, build a new possibilities list
-      //recurse
+  private double alphaBeta(ChoicePair node, List<ChoicePair> possibilities, double alpha, 
+      double beta){
+    if(possibilities.size()==1) return getScore(node, possibilities);
+    for(ChoicePair choice: possibilities){
+      double next = -1*alphaBeta(choice, possibilities, -alpha, -beta);
+      if(next>alpha) alpha = next;
+      else alpha = next;
+          
+      if (beta<= alpha) break;
     }
-    return null;
+    return alpha;
   }
   
   

@@ -2,52 +2,65 @@ import java.util.ArrayList;
 
 public class GameState {
 
-  private double right_torque=0.0;
-  private double left_torque=0.0;
-  private int [] position_weights = new int[31];
+  private double right_torque = 0.0;
+  private double left_torque = 0.0;
+  private int[] position_weights = new int[31];
   private String mode;
   private ArrayList<String> players = new ArrayList<String>();
-  private String current_player=null;
+  private String current_player = null;
   private boolean gameInProgress = true;
-  private	int weights_used = 0;
+  private int weights_used = 0;
 
   /*
-   * formula to calulate torque:
-   * in1 and out1 calculates torque on lever at -1
+   * formula to calulate torque: in1 and out1 calculates torque on lever at -1
    * in3 and out3 calculates torque on lever at -3
    * 
-   * At -3, the tip occurs when torque on the left > torque on right or out3-in3 > 0
-   * At -1, the tip occurs when torque on the right > torque on left or in1-out1 > 0
-   * If either of the conditions hold true, the player loses the game
-   */	
-  public void calculate_torque() {		
+   * At -3, the tip occurs when torque on the left > torque on right or out3-in3
+   * > 0 At -1, the tip occurs when torque on the right > torque on left or
+   * in1-out1 > 0 If either of the conditions hold true, the player loses the
+   * game
+   */
+  public void calculate_torque() {
 
-    right_torque=0.0;
-    left_torque=0.0;
+    right_torque = 0.0;
+    left_torque = 0.0;
 
-    double in1=0,out1=0,in3=0,out3=0;
+    double in1 = 0, out1 = 0, in3 = 0, out3 = 0;
 
-    //the board weights 3 kgs which is concentrated at 0, so there is some intorque at -3 and -1
+    // the board weights 3 kgs which is concentrated at 0, so there is some
+    // intorque at -3 and -1
     in3 += 9;
     in1 += 3;
 
-    for (int i=0; i<position_weights.length; i++) {
+    for (int i = 0; i < position_weights.length; i++) {
       if (position_weights[i] == -1)
         continue;
 
-      int pos = i-15;
+      int pos = i - 15;
       int wt = position_weights[i];
+      System.out.println("Calculating: " + pos + "," + wt);
 
-      if (pos < -3)
-        out3 += (-1) * (pos-(-3)) * wt;
-      else
-        in3 += pos-(-3)* wt;
+      if (pos < -3) {
+        System.out.print("out3: " + out3 + "+" + "(-1) * (" + pos + "-(-3)) * "
+            + wt);
+        out3 += (-1) * (pos - (-3)) * wt;
+        System.out.println("=" + out3);
+      } else {
+        System.out.print("in3: " + in3 + "+" + pos + "-(-3) * " + wt);
+        in3 += (pos - (-3)) * wt;
+        System.out.println("=" + in3);
+      }
 
-
-      if (pos < -1)
-        out1 += (-1) * (pos-(-1)) * wt;
-      else
-        in1 += pos-(-1)* wt;			
+      if (pos < -1) {
+        System.out.print("out1: " + out1 + "+" + "(-1) * (" + pos + "-(-1)) * "
+            + wt);
+        out1 += (-1) * (pos - (-1)) * wt;
+        System.out.println("=" + out1);
+      } else {
+        System.out.print("in1: " + in1 + "+" + pos + "-(-1) * " + wt);
+        in1 += (pos - (-1)) * wt;
+        System.out.println("=" + in1);
+      }
     }
 
     System.out.println("in1=" + in1);
@@ -59,12 +72,12 @@ public class GameState {
   }
 
   public String getPositions() {
-    String positions="";
+    String positions = "";
 
-    for (int i=0;i<position_weights.length;i++) {
+    for (int i = 0; i < position_weights.length; i++) {
       if (position_weights[i] == -1)
         continue;
-      positions += position_weights[i] + "," + (i-15) + " ";
+      positions += position_weights[i] + "," + (i - 15) + " ";
     }
 
     return positions.trim();
@@ -91,10 +104,10 @@ public class GameState {
   }
 
   public void setPosition_weights(int[] positionWeights) {
-    for (int i = 0; i<positionWeights.length;i++) {
+    for (int i = 0; i < positionWeights.length; i++) {
       this.position_weights[i] = positionWeights[i];
     }
-    //position_weights = positionWeights;
+    // position_weights = positionWeights;
   }
 
   public String getMode() {
@@ -130,7 +143,8 @@ public class GameState {
   }
 
   public String nextPlayer() {
-    String new_player= players.get((players.indexOf(current_player)+1) % (players.size()));
+    String new_player = players.get((players.indexOf(current_player) + 1)
+        % (players.size()));
     current_player = new_player;
     return new_player;
   }
@@ -151,7 +165,8 @@ public class GameState {
     weights_used--;
   }
 
-
+  public void removePlayer(String tag) {
+    this.players.remove(tag);
+  }
 
 }
-

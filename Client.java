@@ -38,8 +38,8 @@ public class Client {
       {
         //replace here with an output from my code
         player.setStatus(fromServer);
+        System.out.println("final result " + player.play());
         fromUser = stdIn.readLine();
-        //fromUser = player.play();
         if (fromUser != null) {
           //System.out.println("Client: " + fromUser);
           

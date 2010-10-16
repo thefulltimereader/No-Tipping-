@@ -14,7 +14,7 @@ public class Player {
   
   public static void main(String args[]){
     Player p = new Player("test");
-    String fromS = "ADD|9,-6 6,-5 3,-4 1,-3 4,-2 8,-1 2,0 5,1 7,2 10,3|in=-8.0,out=-108.0";
+    String fromS = "ADD|3,-4|in=-6.0,out=-6.0";
     p.setStatus(fromS);
     System.out.println("Final result:  " + p.play());    
   }
@@ -38,7 +38,7 @@ public class Player {
     List<ChoicePair> poss = buildChoices(_occupied, _usedWeights);
     //String ans = poss.get(0).toString(); //random..
     System.out.println(poss);
-    //only left with one weight so return which ever.......but think..about..this...later for removing..?
+    //only left with one weight so return which ever...but think..about..this...later for removing..?
     System.out.println("size of occupied is: " + _occupied.size());
     ChoicePair finalResult = null;
     if(poss.isEmpty()) finalResult = buildLosingChoices(_occupied).get(0);//this will tip..
@@ -49,7 +49,10 @@ public class Player {
     if(poss.size()==1) finalResult = poss.get(0);
     
     else{
-      Pair<Double, ChoicePair> res = alphaBeta(_occupied, poss, new Pair<Double, ChoicePair>(Double.MIN_VALUE, poss.get(0)), new Pair<Double, ChoicePair>(Double.MAX_VALUE, poss.get(0)), null, 0);
+      Pair<Double, ChoicePair> res = alphaBeta(_occupied, poss, 
+          new Pair<Double, ChoicePair>(Double.MIN_VALUE, poss.get(0)), 
+          new Pair<Double, ChoicePair>(Double.MAX_VALUE, poss.get(0)), 
+          null, 0, _usedWeights);
       finalResult = res.snd;
     }
     //}
@@ -189,7 +192,7 @@ public class Player {
     return 3.0;
   }
   private Pair<Double, ChoicePair> alphaBeta(HashMap<Integer, Integer> curr, List<ChoicePair> possibilities, Pair<Double, ChoicePair> alpha, 
-      Pair<Double, ChoicePair> beta, ChoicePair node, double depth){
+      Pair<Double, ChoicePair> beta, ChoicePair node, double depth, Collection<Integer> weightSoFar){
 //    if(depth==4){
 //      double score = 1/(depth*node.weight);
 //      return new Pair<Double, ChoicePair>(score, node);
@@ -207,13 +210,13 @@ public class Player {
       HashMap<Integer, Integer> newOccupied = new HashMap<Integer, Integer>(curr);
       newOccupied.put(choice.position, choice.weight);
       //System.out.println("for choice: " +choice+" new Occupied: " +newOccupied);
-        Collection<Integer>newUsedWeights = new ArrayList<Integer>(_usedWeights);
+        Collection<Integer>newUsedWeights = new ArrayList<Integer>(weightSoFar);
         newUsedWeights.add(choice.weight);
         possibilities = buildChoices(newOccupied, newUsedWeights);
         //System.out.println("for choice:" + choice+" size of possibilities in search:"+possibilities.size());
         Pair<Double, ChoicePair> newAlpha = new Pair<Double, ChoicePair>(alpha.fst*-1, alpha.snd);//negate
         Pair<Double, ChoicePair> newBeta = new Pair<Double, ChoicePair>(beta.fst*-1, beta.snd);//negate
-        Pair<Double, ChoicePair>result = alphaBeta(newOccupied, possibilities, newBeta, newAlpha, choice, depth++);//switch min-max 
+        Pair<Double, ChoicePair>result = alphaBeta(newOccupied, possibilities, newBeta, newAlpha, choice, depth++, newUsedWeights);//switch min-max 
         double score = -1*result.fst; 
         System.out.println("for choice:" + choice+" size of poss:"+possibilities.size()+" score:" + score);
         //if(choice.position==12) {

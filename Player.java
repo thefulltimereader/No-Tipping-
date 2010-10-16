@@ -208,7 +208,8 @@ public class Player {
       newOccupied.put(choice.position, choice.weight);
       //System.out.println("for choice: " +choice+" new Occupied: " +newOccupied);
         Collection<Integer>newUsedWeights = new ArrayList<Integer>(_usedWeights);
-        possibilities = buildChoices(newOccupied, newUsedWeights.add(choice.weight));
+        newUsedWeights.add(choice.weight);
+        possibilities = buildChoices(newOccupied, newUsedWeights);
         //System.out.println("for choice:" + choice+" size of possibilities in search:"+possibilities.size());
         Pair<Double, ChoicePair> newAlpha = new Pair<Double, ChoicePair>(alpha.fst*-1, alpha.snd);//negate
         Pair<Double, ChoicePair> newBeta = new Pair<Double, ChoicePair>(beta.fst*-1, beta.snd);//negate

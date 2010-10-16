@@ -14,7 +14,7 @@ public class Player {
   
   public static void main(String args[]){
     Player p = new Player("test");
-    String fromS = "ADD|3,-4|in=-6.0,out=-6.0";
+    String fromS = "ADD|2,-10 10,-7 8,-6 1,-5 3,-4 5,-3 4,-2 6,-1 7,0 9,1 3,2|in=-108.0,out=-14.0";
     p.setStatus(fromS);
     System.out.println("Final result:  " + p.play());    
   }
@@ -35,24 +35,23 @@ public class Player {
   public String play(){
     //ADD
     //if(_mode==1){
-    List<ChoicePair> poss = buildChoices(_occupied, _usedWeights);
+    List<ChoicePair> poss = buildChoices(_occupied);
     //String ans = poss.get(0).toString(); //random..
     System.out.println(poss);
-    //only left with one weight so return which ever...but think..about..this...later for removing..?
+    //only left with one weight so return which ever.but think..about..this...later for removing..?
     System.out.println("size of occupied is: " + _occupied.size());
     ChoicePair finalResult = null;
     if(poss.isEmpty()) finalResult = buildLosingChoices(_occupied).get(0);//this will tip..
-    if(_occupied.size()==32){ 
+    else if(_occupied.size()==32){ 
       if(!poss.isEmpty()) finalResult =  poss.get(0);
-      else return buildLosingChoices(_occupied).get(0).toString();
+      else finalResult =  buildLosingChoices(_occupied).get(0);
     }
-    if(poss.size()==1) finalResult = poss.get(0);
-    
+    else if(poss.size()==1) finalResult = poss.get(0);
     else{
       Pair<Double, ChoicePair> res = alphaBeta(_occupied, poss, 
           new Pair<Double, ChoicePair>(Double.MIN_VALUE, poss.get(0)), 
           new Pair<Double, ChoicePair>(Double.MAX_VALUE, poss.get(0)), 
-          null, 0, _usedWeights);
+          null, 0);
       finalResult = res.snd;
     }
     //}
@@ -139,25 +138,27 @@ public class Player {
   }
   
   private List<ChoicePair> buildLosingChoices(HashMap<Integer, Integer> occupied){
-    System.out.println("Losing..");
+
+    System.out.println("Losing..usedWeights:"+_usedWeights);
+    
     Set<Integer> takenPositions = occupied.keySet();
-    Collection<Integer> takenWeights = occupied.values();
-    System.out.println(takenWeights);
     ArrayList<ChoicePair> choices = new ArrayList<ChoicePair>();
     for(int i=-15; i<16;i++){
       if(!takenPositions.contains(i)){
         for(int j=1; j<=_numOfWeights;j++){
-          if(!takenWeights.contains(j)){
+          if(!_usedWeights.contains(j)){
             choices.add(new ChoicePair(i, j));
           }
         }
       }
     }
+    System.out.println("choices:"+choices);
     return choices;
   }
 
-  private List<ChoicePair>buildChoices(HashMap<Integer, Integer> occupied, Collection<Integer> usedW){
-    Set<Integer> takenPositions = occupied.keySet();    
+  private List<ChoicePair>buildChoices(HashMap<Integer, Integer> occupied){
+    Set<Integer> takenPositions = occupied.keySet();   
+    Collection<Integer> usedW = occupied.values();
     ArrayList<ChoicePair> possibilities = new ArrayList<ChoicePair>();
     //System.out.println("taken Positions:" + takenPositions);
     for(int i=-15; i<16;i++){
@@ -192,7 +193,7 @@ public class Player {
     return 3.0;
   }
   private Pair<Double, ChoicePair> alphaBeta(HashMap<Integer, Integer> curr, List<ChoicePair> possibilities, Pair<Double, ChoicePair> alpha, 
-      Pair<Double, ChoicePair> beta, ChoicePair node, double depth, Collection<Integer> weightSoFar){
+      Pair<Double, ChoicePair> beta, ChoicePair node, double depth){
 //    if(depth==4){
 //      double score = 1/(depth*node.weight);
 //      return new Pair<Double, ChoicePair>(score, node);
@@ -210,21 +211,16 @@ public class Player {
       HashMap<Integer, Integer> newOccupied = new HashMap<Integer, Integer>(curr);
       newOccupied.put(choice.position, choice.weight);
       //System.out.println("for choice: " +choice+" new Occupied: " +newOccupied);
-        Collection<Integer>newUsedWeights = new ArrayList<Integer>(weightSoFar);
-        newUsedWeights.add(choice.weight);
-        possibilities = buildChoices(newOccupied, newUsedWeights);
-        //System.out.println("for choice:" + choice+" size of possibilities in search:"+possibilities.size());
-        Pair<Double, ChoicePair> newAlpha = new Pair<Double, ChoicePair>(alpha.fst*-1, alpha.snd);//negate
-        Pair<Double, ChoicePair> newBeta = new Pair<Double, ChoicePair>(beta.fst*-1, beta.snd);//negate
-        Pair<Double, ChoicePair>result = alphaBeta(newOccupied, possibilities, newBeta, newAlpha, choice, depth++, newUsedWeights);//switch min-max 
-        double score = -1*result.fst; 
-        System.out.println("for choice:" + choice+" size of poss:"+possibilities.size()+" score:" + score);
-        //if(choice.position==12) {
-          //System.out.println("halt");
-       // }
-        //max(alpha, -alphabeta(...))
-        if(score>alpha.fst){
-          alpha = new Pair<Double, ChoicePair>(score, choice); //keep the winner
+      possibilities = buildChoices(newOccupied);
+      //System.out.println("for choice:" + choice+" size of possibilities in search:"+possibilities.size());
+      Pair<Double, ChoicePair> newAlpha = new Pair<Double, ChoicePair>(alpha.fst*-1, alpha.snd);//negate
+      Pair<Double, ChoicePair> newBeta = new Pair<Double, ChoicePair>(beta.fst*-1, beta.snd);//negate
+      Pair<Double, ChoicePair>result = alphaBeta(newOccupied, possibilities, newBeta, newAlpha, choice, depth++);
+      double score = -1*result.fst; 
+      System.out.println("for choice:" + choice+" size of poss:"+possibilities.size()+" score:" + score);
+      //max(alpha, -alphabeta(...))
+      if(score>alpha.fst){
+        alpha = new Pair<Double, ChoicePair>(score, choice); //keep the winner
       }
       if (beta.fst<= alpha.fst) break; //don't give a fuck!
       }

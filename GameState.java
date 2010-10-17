@@ -38,35 +38,35 @@ public class GameState {
 
       int pos = i - 15;
       int wt = position_weights[i];
-      System.out.println("Calculating: " + pos + "," + wt);
+      //System.out.println("Calculating: " + pos + "," + wt);
 
       if (pos < -3) {
-        System.out.print("out3: " + out3 + "+" + "(-1) * (" + pos + "-(-3)) * "
-            + wt);
+        //System.out.print("out3: " + out3 + "+" + "(-1) * (" + pos + "-(-3)) * "
+           // + wt);
         out3 += (-1) * (pos - (-3)) * wt;
-        System.out.println("=" + out3);
+        //System.out.println("=" + out3);
       } else {
-        System.out.print("in3: " + in3 + "+" + pos + "-(-3) * " + wt);
+        //System.out.print("in3: " + in3 + "+" + pos + "-(-3) * " + wt);
         in3 += (pos - (-3)) * wt;
-        System.out.println("=" + in3);
+        //System.out.println("=" + in3);
       }
 
       if (pos < -1) {
-        System.out.print("out1: " + out1 + "+" + "(-1) * (" + pos + "-(-1)) * "
-            + wt);
+        //System.out.print("out1: " + out1 + "+" + "(-1) * (" + pos + "-(-1)) * "
+          //  + wt);
         out1 += (-1) * (pos - (-1)) * wt;
-        System.out.println("=" + out1);
+       // System.out.println("=" + out1);
       } else {
-        System.out.print("in1: " + in1 + "+" + pos + "-(-1) * " + wt);
+        //System.out.print("in1: " + in1 + "+" + pos + "-(-1) * " + wt);
         in1 += (pos - (-1)) * wt;
-        System.out.println("=" + in1);
+       // System.out.println("=" + in1);
       }
     }
 
-    System.out.println("in1=" + in1);
-    System.out.println("out1=" + out1);
-    System.out.println("in3=" + in3);
-    System.out.println("out3=" + out3);
+    //System.out.println("in1=" + in1);
+    //System.out.println("out1=" + out1);
+    //System.out.println("in3=" + in3);
+    //System.out.println("out3=" + out3);
     right_torque = in1 - out1;
     left_torque = out3 - in3;
   }

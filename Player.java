@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
@@ -14,8 +15,12 @@ public class Player {
   
   public static void main(String args[]){
     Player p = new Player("test");
-    String fromS = "ADD|2,-10 10,-7 8,-6 1,-5 3,-4 5,-3 4,-2 6,-1 7,0 9,1 3,2|in=-108.0,out=-14.0";
+    String fromS = "ADD|6,-6 9,-5 3,-4 2,-3 5,-2 10,-1 8,0|in=-73.0,out=-19.0";
     p.setStatus(fromS);
+    p._usedWeights.add(1);p._usedWeights.add(2);p._usedWeights.add(4);
+    p._usedWeights.add(5);p._usedWeights.add(7);p._usedWeights.add(8);
+    p._usedWeights.add(10);
+    
     System.out.println("Final result:  " + p.play());    
   }
   
@@ -25,7 +30,7 @@ public class Player {
   private HashMap<Integer, Integer> _occupied = new HashMap<Integer, Integer>();
   private Double _rightTorque;
   private Double _leftTorque;
-  private int _numOfWeights;
+  public int _numOfWeights;
   private Collection<Integer> _usedWeights = new ArrayList<Integer>();
   public Player(String name){
     _name = name;
@@ -36,15 +41,19 @@ public class Player {
     //ADD
     //if(_mode==1){
     List<ChoicePair> poss = buildChoices(_occupied);
-    //String ans = poss.get(0).toString(); //random..
-    System.out.println(poss);
+    if(poss.isEmpty()) System.out.println(poss+"nomore..?");
     //only left with one weight so return which ever.but think..about..this...later for removing..?
     System.out.println("size of occupied is: " + _occupied.size());
     ChoicePair finalResult = null;
-    if(poss.isEmpty()) finalResult = buildLosingChoices(_occupied).get(0);//this will tip..
-    else if(_occupied.size()==32){ 
-      if(!poss.isEmpty()) finalResult =  poss.get(0);
-      else finalResult =  buildLosingChoices(_occupied).get(0);
+    Random gen = new Random();
+    if(poss.isEmpty() || _occupied.size() == 29){
+      //get random
+      List<ChoicePair> choices = buildLosingChoices(_occupied);//this will tip..
+      if(!choices.isEmpty()){
+        int r = gen.nextInt(choices.size());
+        finalResult = choices.get(r);
+      }
+      else finalResult = new ChoicePair(-1,-1); //invalid
     }
     else if(poss.size()==1) finalResult = poss.get(0);
     else{
@@ -55,6 +64,7 @@ public class Player {
       finalResult = res.snd;
     }
     //}
+    System.out.println("use weight!!! "+finalResult.weight+ " at pos:" + finalResult.position);
     _usedWeights.add(finalResult.weight);
     return finalResult.toString();
   }
@@ -77,19 +87,15 @@ public class Player {
       String[] token = parser.nextToken().split(",");
       _occupied.put(Integer.valueOf(token[1]), Integer.valueOf(token[0]));
     }
-    //TODO: take this out later, doesnt matter butdont really need to get it
-    String torques = words[2];
-    parser = new StringTokenizer(torques,",");
-    _rightTorque =Double.valueOf(parser.nextToken().substring(3));
-    _leftTorque = Double.valueOf(parser.nextToken().substring(4));
+
     //printStatus();
 
   }
   private void printStatus(){
     System.out.println("Current playing mode is " + _mode);
     System.out.println("Current position occupied are: " + _occupied.toString());
-    System.out.println("Current torques are Right: "+
-        _rightTorque + " left:"+_leftTorque);
+//    System.out.println("Current torques are Right: "+
+//        _rightTorque + " left:"+_leftTorque);
     calculate_torque();
     System.out.println("Current calculated torques " +_rightTorque +
         " out="+_leftTorque );
@@ -148,11 +154,12 @@ public class Player {
         for(int j=1; j<=_numOfWeights;j++){
           if(!_usedWeights.contains(j)){
             choices.add(new ChoicePair(i, j));
+            System.out.println("Honmani akan no?" + new ChoicePair(i,j).willTipWith(occupied));
           }
         }
       }
     }
-    System.out.println("choices:"+choices);
+    //System.out.println("choices:"+choices);
     return choices;
   }
 
@@ -164,7 +171,7 @@ public class Player {
     for(int i=-15; i<16;i++){
       if(!takenPositions.contains(i)){
         for(int j=1; j<=_numOfWeights;j++){
-          if(!usedW.contains(j)){
+          if(!_usedWeights.contains(j) && !usedW.contains(j)){
             ChoicePair choice = new ChoicePair(i,j);
             if(!choice.willTipWith(null)) possibilities.add(new ChoicePair(i, j));            
           }
@@ -217,7 +224,7 @@ public class Player {
       Pair<Double, ChoicePair> newBeta = new Pair<Double, ChoicePair>(beta.fst*-1, beta.snd);//negate
       Pair<Double, ChoicePair>result = alphaBeta(newOccupied, possibilities, newBeta, newAlpha, choice, depth++);
       double score = -1*result.fst; 
-      System.out.println("for choice:" + choice+" size of poss:"+possibilities.size()+" score:" + score);
+      //System.out.println("for choice:" + choice+" size of poss:"+possibilities.size()+" score:" + score);
       //max(alpha, -alphabeta(...))
       if(score>alpha.fst){
         alpha = new Pair<Double, ChoicePair>(score, choice); //keep the winner
@@ -239,7 +246,7 @@ public class Player {
       myOccupied.put(position, weight);
     }
     boolean willTipWith(HashMap<Integer, Integer> newOccupied){
-      if (newOccupied == null) newOccupied = myOccupied;
+      if(newOccupied==null) newOccupied = myOccupied;
       double rightT,leftT = 0.0; 
       double in1=0,out1=0,in3=0,out3=0;
       Set<Integer> s = newOccupied.keySet();

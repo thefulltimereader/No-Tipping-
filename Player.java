@@ -15,11 +15,12 @@ public class Player {
   
   public static void main(String args[]){
     Player p = new Player("test");
-    String fromS = "ADD|6,-6 9,-5 3,-4 2,-3 5,-2 10,-1 8,0|in=-73.0,out=-19.0";
+    String fromS = "ADD|8,-15 9,-6 6,-5 3,-4 1,-3 4,-2 8,-1 2,0 5,1 7,2 10,3 3,4|in=-105.0,out=-33.0";
     p.setStatus(fromS);
-//    p._usedWeights.add(1);p._usedWeights.add(2);p._usedWeights.add(4);
-//    p._usedWeights.add(5);p._usedWeights.add(7);p._usedWeights.add(8);
-//    p._usedWeights.add(10);
+    //p._usedWeights.add(1);p._usedWeights.add(2);
+    p._usedWeights.add(4);p._usedWeights.add(6);
+    p._usedWeights.add(5);p._usedWeights.add(7);p._usedWeights.add(8);
+    //p._usedWeights.add(10);
     
     System.out.println("Final result:  " + p.play());    
   }
@@ -40,33 +41,37 @@ public class Player {
   public String play(){
     System.out.println("+++++++++++++My " + _usedWeights.size() + "th play +++++++++++++");
     //ADD
-    //if(_mode==1){
-    List<ChoicePair> poss = buildChoices(_occupied);
-    if(poss.isEmpty()) System.out.println(poss+"nomore..?");
-    //only left with one weight so return which ever.but think..about..this...later for removing..?
-    System.out.println("usedWeights:"+_usedWeights);
     ChoicePair finalResult = null;
-    Random gen = new Random();
-    if(poss.isEmpty() || _occupied.size() == 29){
-      //get random
-      List<ChoicePair> choices = buildLosingChoices(_occupied);//this will tip..
-      if(!choices.isEmpty()){
-        int r = gen.nextInt(choices.size());
-        finalResult = choices.get(r);
+    if(_mode==1){
+      List<ChoicePair> poss = buildChoicesWithUsedWeightsOnly(_occupied);
+      if(poss.isEmpty()) System.out.println(poss+"nomore..?");
+      //only left with one weight so return which ever.but think..about..this...later for removing..?
+      System.out.println("usedWeights:"+_usedWeights);
+      Random gen = new Random();
+      if(poss.isEmpty() || _occupied.size() == 29){
+        //get random
+        List<ChoicePair> choices = buildLosingChoices(_occupied);//this will tip..
+        if(!choices.isEmpty()){
+          int r = gen.nextInt(choices.size());
+          finalResult = choices.get(r);
+        }
+        else finalResult = new ChoicePair(-1,-1); //invalid shouldn't reach here
       }
-      else finalResult = new ChoicePair(-1,-1); //invalid
+      else if(poss.size()==1) finalResult = poss.get(0);
+      else{
+        Pair<Double, ChoicePair> res = alphaBeta(_occupied, poss, 
+            new Pair<Double, ChoicePair>(Double.MIN_VALUE, poss.get(0)), 
+            new Pair<Double, ChoicePair>(Double.MAX_VALUE, poss.get(0)), 
+            null, 0);
+        finalResult = res.snd;
+      }
     }
-    else if(poss.size()==1) finalResult = poss.get(0);
+    //remove!!
     else{
-      Pair<Double, ChoicePair> res = alphaBeta(_occupied, poss, 
-          new Pair<Double, ChoicePair>(Double.MIN_VALUE, poss.get(0)), 
-          new Pair<Double, ChoicePair>(Double.MAX_VALUE, poss.get(0)), 
-          null, 0);
-      finalResult = res.snd;
+      finalResult = new ChoicePair(-100,-100);
     }
-    //}
     System.out.println("use weight!!! "+finalResult.weight+ " at pos:" + finalResult.position);
-    _usedWeights.add(finalResult.weight);
+    if(finalResult.weight>0)_usedWeights.add(finalResult.weight);
     return finalResult.toString();
   }
   /**parses details sent from Server and sets Game Status
@@ -168,11 +173,30 @@ public class Player {
     Set<Integer> takenPositions = occupied.keySet();   
     Collection<Integer> usedW = occupied.values();
     ArrayList<ChoicePair> possibilities = new ArrayList<ChoicePair>();
+    //System.out.println("occupied Positions:" + occupied);
     //System.out.println("taken Positions:" + takenPositions);
     for(int i=-15; i<16;i++){
       if(!takenPositions.contains(i)){
         for(int j=1; j<=_numOfWeights;j++){
           if(!_usedWeights.contains(j) && !usedW.contains(j)){
+            ChoicePair choice = new ChoicePair(i,j);
+            if(!choice.willTipWith(null)) possibilities.add(new ChoicePair(i, j));            
+          }
+        }
+      }
+    }
+    return possibilities;
+  }
+  //only called in the beginning 
+  private List<ChoicePair>buildChoicesWithUsedWeightsOnly(HashMap<Integer, Integer> occupied){
+    Set<Integer> takenPositions = occupied.keySet();   
+    
+    ArrayList<ChoicePair> possibilities = new ArrayList<ChoicePair>();
+    //System.out.println("taken Positions:" + takenPositions);
+    for(int i=-15; i<16;i++){
+      if(!takenPositions.contains(i)){
+        for(int j=1; j<=_numOfWeights;j++){
+          if(!_usedWeights.contains(j)){
             ChoicePair choice = new ChoicePair(i,j);
             if(!choice.willTipWith(null)) possibilities.add(new ChoicePair(i, j));            
           }

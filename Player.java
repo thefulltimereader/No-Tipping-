@@ -17,9 +17,9 @@ public class Player {
     Player p = new Player("test");
     String fromS = "ADD|6,-6 9,-5 3,-4 2,-3 5,-2 10,-1 8,0|in=-73.0,out=-19.0";
     p.setStatus(fromS);
-    p._usedWeights.add(1);p._usedWeights.add(2);p._usedWeights.add(4);
-    p._usedWeights.add(5);p._usedWeights.add(7);p._usedWeights.add(8);
-    p._usedWeights.add(10);
+//    p._usedWeights.add(1);p._usedWeights.add(2);p._usedWeights.add(4);
+//    p._usedWeights.add(5);p._usedWeights.add(7);p._usedWeights.add(8);
+//    p._usedWeights.add(10);
     
     System.out.println("Final result:  " + p.play());    
   }
@@ -30,7 +30,7 @@ public class Player {
   private HashMap<Integer, Integer> _occupied = new HashMap<Integer, Integer>();
   private Double _rightTorque;
   private Double _leftTorque;
-  public int _numOfWeights;
+  private int _numOfWeights;
   private Collection<Integer> _usedWeights = new ArrayList<Integer>();
   public Player(String name){
     _name = name;
@@ -38,12 +38,13 @@ public class Player {
   }
 
   public String play(){
+    System.out.println("+++++++++++++My " + _usedWeights.size() + "th play +++++++++++++");
     //ADD
     //if(_mode==1){
     List<ChoicePair> poss = buildChoices(_occupied);
     if(poss.isEmpty()) System.out.println(poss+"nomore..?");
     //only left with one weight so return which ever.but think..about..this...later for removing..?
-    System.out.println("size of occupied is: " + _occupied.size());
+    System.out.println("usedWeights:"+_usedWeights);
     ChoicePair finalResult = null;
     Random gen = new Random();
     if(poss.isEmpty() || _occupied.size() == 29){
@@ -145,7 +146,7 @@ public class Player {
   
   private List<ChoicePair> buildLosingChoices(HashMap<Integer, Integer> occupied){
 
-    System.out.println("Losing..usedWeights:"+_usedWeights);
+    System.out.println("Losing..");
     
     Set<Integer> takenPositions = occupied.keySet();
     ArrayList<ChoicePair> choices = new ArrayList<ChoicePair>();

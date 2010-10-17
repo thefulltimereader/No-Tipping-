@@ -154,7 +154,7 @@ public class Player {
         for(int j=1; j<=_numOfWeights;j++){
           if(!_usedWeights.contains(j)){
             choices.add(new ChoicePair(i, j));
-            System.out.println("Honmani akan no?" + new ChoicePair(i,j).willTipWith(occupied));
+            //System.out.println("Honmani akan no?" + new ChoicePair(i,j).willTipWith(null));
           }
         }
       }

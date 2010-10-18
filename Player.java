@@ -12,8 +12,8 @@ public class Player {
 
   public static void main(String args[]){
     Player p = new Player("test");
-    String fromS = "ADD|3,-4|in=-6.0,out=-6.0";
-    //String fromS = "REMOVE|5,-14 9,-13 7,-11 10,-10 8,-9 3,-7 2,-6 1,-5 3,-4 1,-3 4,-2 5,-1 7,1 3,2 10,3 6,4 4,5 8,6 9,7|in=-190.0,out=-38.0";
+    //String fromS = "ADD|3,-4|in=-6.0,out=-6.0";
+    String fromS = "REMOVE|9,-14 7,-10 5,-9 1,-8 3,-7 10,-6 5,-5 3,-4 1,-3 3,-2 6,-1 7,6 10,7 9,8|in=-116.0,out=-48.0";
     System.out.println("Server: " + fromS);
     p.setStatus(fromS);
     //p._usedWeights.add(1);p._usedWeights.add(2);
@@ -30,9 +30,10 @@ public class Player {
   public Player(String name){
     _numOfWeights = 10;
   }
+  private int _plays = 0;
 
   public String play(){
-    System.out.println("+++++++++++++My " + _usedWeights.size() + "th play +++++++++++++");
+    System.out.println("+++++++++++++My " + _plays+ "th play +++++++++++++");
     //ADD
     ChoicePair finalResult = null;
     Random gen = new Random();
@@ -82,7 +83,9 @@ public class Player {
       }
     }
     System.out.println("use weight!!! "+finalResult.weight+ " at pos:" + finalResult.position);
+    System.out.println("My torque is left:"+finalResult.leftT+ " right:" + finalResult.rightT);
     if(_mode == 1 && finalResult.weight>0)_usedWeights.add(finalResult.weight);
+    _plays++;
     return finalResult.toString();
   }
   /**parses details sent from Server and sets Game Status
@@ -255,6 +258,7 @@ public class Player {
 
   class ChoicePair{
     private int position;
+    double rightT,leftT = 0.0; 
     private int weight;
     private HashMap<Integer, Integer> myOccupied;
     ChoicePair(int position, int weight, Map<Integer, Integer> occ){
@@ -265,8 +269,11 @@ public class Player {
     }
     boolean willTipWith(){
       //if(newOccupied==null) newOccupied = myOccupied;
-      double rightT,leftT = 0.0; 
+      rightT = leftT = 0.0;
       double in1=0,out1=0,in3=0,out3=0;
+      in3 += 9;
+      in1 += 3;
+
       Set<Integer> s = myOccupied.keySet();
       for (Integer i: s){
         int pos = i;

@@ -34,6 +34,9 @@ public class Client {
       System.out.println("Server: " + fromServer);
       if (fromServer.equals("Bye"))
         break;
+      if(fromServer.startsWith("REJECT")){
+        System.exit(1);
+      }
       if (((fromServer.startsWith("ADD")) || (fromServer.startsWith("REMOVE"))))
       {
         //replace here with an output from my code

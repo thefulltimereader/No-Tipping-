@@ -12,8 +12,8 @@ public class Player {
 
   public static void main(String args[]){
     Player p = new Player("test");
-    //String fromS = "ADD|3,-4|in=-6.0,out=-6.0";
-    String fromS = "REMOVE|10,-13 8,-11 9,-10 6,-9 7,-8 2,-7 4,-6 5,-5 3,-4 1,-3 3,-2 1,-1 3,1 4,2 5,3 6,4 7,5 8,6 9,7 10,8|in=-113.0,out=-115.0";
+    String fromS = "ADD|3,-4|in=-6.0,out=-6.0";
+    //String fromS = "REMOVE|5,-14 9,-13 7,-11 10,-10 8,-9 3,-7 2,-6 1,-5 3,-4 1,-3 4,-2 5,-1 7,1 3,2 10,3 6,4 4,5 8,6 9,7|in=-190.0,out=-38.0";
     System.out.println("Server: " + fromS);
     p.setStatus(fromS);
     //p._usedWeights.add(1);p._usedWeights.add(2);
@@ -62,8 +62,10 @@ public class Player {
     else{
       List<ChoicePair> poss = buildRemoveChoices(_occupied,false);
       System.out.println("remove possibilities: " + poss);
+      System.out.println("occupied are: " + _occupied);
       if(poss.isEmpty() || _occupied.size()==1){
-        List<ChoicePair> choices = buildChoices(_occupied, true, true);//this will tip..
+        
+        List<ChoicePair> choices = buildRemoveChoices(_occupied, true);//this will tip..
         if(!choices.isEmpty()){
           int r = gen.nextInt(choices.size());//get random
           finalResult = choices.get(r);
@@ -90,7 +92,10 @@ public class Player {
     Pattern splitter = Pattern.compile("\\|");
     String[] words = splitter.split(fromServer);
     if(words[0].startsWith("ADD")) _mode = 1;
-    else _mode = 0;
+    else{
+      _mode = 0;
+      _occupied.clear();
+    }
     String data = words[1];
     StringTokenizer parser = new StringTokenizer(data, " "); 
     //feed the occupied map
@@ -118,7 +123,7 @@ public class Player {
           //if first is on, it is called in the beginning and so should not consider what's in occupied values
           if(!_usedWeights.contains(j) && (first || !usedW.contains(j) )){
             //the second one hsould be occupied not _occupied but what the hell, search sp too big
-            ChoicePair choice = first ? new ChoicePair(i,j, _occupied): new ChoicePair(i, j, _occupied);
+            ChoicePair choice = first ? new ChoicePair(i,j, _occupied): new ChoicePair(i, j, occupied);
             //is losing is on, need to add everything regardless
             if(losing) System.out.println("Losing..");//System.out.println("Honmani akan no?" + new ChoicePair(i,j).willTipWith(null));
             if(losing || !choice.willTipWith() ) possibilities.add(choice);
@@ -137,8 +142,7 @@ public class Player {
        HashMap<Integer, Integer> removedOccupied = new HashMap<Integer, Integer>(occupied);
        removedOccupied.remove(pos);
        ChoicePair choice = new ChoicePair(pos, occupied.get(pos), removedOccupied);
-       if(losing || !choice.willTipWith())
-         possibilities.add(choice);            
+       if(losing || !choice.willTipWith()) possibilities.add(choice);            
     }
     return possibilities;
   }
@@ -162,6 +166,14 @@ public class Player {
   private Pair<Double, ChoicePair> alphaBeta(HashMap<Integer, Integer> curr, List<ChoicePair> possibilities, Pair<Double, ChoicePair> alpha, 
       Pair<Double, ChoicePair> beta, ChoicePair node, double depth){
     depth++;
+    if(depth==4){
+      Pair<Double, ChoicePair> best = new Pair<Double,ChoicePair>(Double.MIN_VALUE, node);
+      for(ChoicePair p: possibilities){
+        double score = 1/(depth*node.weight);//+node.position;
+        best = (score>best.fst)? new Pair<Double, ChoicePair>(score, p): best;
+      }
+      return best;
+    }
     //this is good..
     //if(possibilities.size()==0) return new Pair<Double, ChoicePair>(1.0, node);
     if(possibilities.size()==0){
@@ -193,14 +205,14 @@ public class Player {
       if(score>alpha.fst){
         alpha = new Pair<Double, ChoicePair>(score, choice); //keep the winner
       }
-      if (beta.fst<= alpha.fst){System.out.println("Don't give a fuck!!");break;} 
+      if (beta.fst<= alpha.fst){/*System.out.println("Don't give a fuck!!");*/break;} 
     }
     return alpha;
   }
   private Pair<Double, ChoicePair> alphaBetaRemove(HashMap<Integer, Integer> curr, List<ChoicePair> possibilities, Pair<Double, ChoicePair> alpha, 
       Pair<Double, ChoicePair> beta, ChoicePair node, double depth){
     depth++;
-    System.out.println("==============Depths is "+depth);
+    //System.out.println("==============Depths is "+depth);
     if(depth>7){
       //...to big..
       Pair<Double, ChoicePair> best = new Pair<Double,ChoicePair>(Double.MIN_VALUE, node);
@@ -222,7 +234,7 @@ public class Player {
       newOccupied.remove(choice.position);
       //System.out.println("for choice: " +choice+" new Occupied: " +newOccupied);
       List<ChoicePair> newPossibilities = buildRemoveChoices(newOccupied,false);
-      System.out.println("for choice:" + choice+" poss:"+newPossibilities);
+      //System.out.println("for choice:" + choice+" poss:"+newPossibilities);
       Pair<Double, ChoicePair> newAlpha = new Pair<Double, ChoicePair>(alpha.fst*-1, alpha.snd);//negate
       //alpha = newAlpha;
       Pair<Double, ChoicePair> newBeta = new Pair<Double, ChoicePair>(beta.fst*-1, beta.snd);//negate
@@ -234,7 +246,7 @@ public class Player {
       if(score>alpha.fst){
         alpha = new Pair<Double, ChoicePair>(score, choice); //keep the winner
       }
-      if (beta.fst<= alpha.fst){System.out.println("Don't give a fuck!!");break;} 
+      if (beta.fst<= alpha.fst){/*System.out.println("Don't give a fuck!!");*/break;} 
     }
     //System.out.println("kore kaesou" + alpha.fst);
     return alpha;

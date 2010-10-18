@@ -8,8 +8,6 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 
-import com.sun.tools.javac.util.Pair;
-
 public class Player {
 
   public static void main(String args[]){
@@ -54,8 +52,8 @@ public class Player {
       else if(poss.size()==1) finalResult = poss.get(0);
       else{
         Pair<Double, ChoicePair> res = alphaBeta(_occupied, poss, 
-            new Pair<Double, ChoicePair>(Double.MIN_VALUE, poss.get(0)), 
-            new Pair<Double, ChoicePair>(Double.MAX_VALUE, poss.get(0)), 
+            new Pair<Double, ChoicePair>(Double.NEGATIVE_INFINITY, poss.get(0)), 
+            new Pair<Double, ChoicePair>(Double.POSITIVE_INFINITY, poss.get(0)), 
             null, 0);
         finalResult = res.snd;
       }
@@ -75,8 +73,8 @@ public class Player {
       else if(poss.size()==1) finalResult = poss.get(0);
       else{
         Pair<Double, ChoicePair> res = alphaBetaRemove(_occupied, poss, 
-            new Pair<Double, ChoicePair>(Double.MIN_VALUE, poss.get(0)), 
-            new Pair<Double, ChoicePair>(Double.MAX_VALUE, poss.get(0)), 
+            new Pair<Double, ChoicePair>(Double.NEGATIVE_INFINITY, poss.get(0)), 
+            new Pair<Double, ChoicePair>(Double.POSITIVE_INFINITY, poss.get(0)), 
             null, 0);
         finalResult = res.snd;
       }
@@ -119,7 +117,8 @@ public class Player {
         for(int j=1; j<=_numOfWeights;j++){
           //if first is on, it is called in the beginning and so should not consider what's in occupied values
           if(!_usedWeights.contains(j) && (first || !usedW.contains(j) )){
-            ChoicePair choice = first ? new ChoicePair(i,j, _occupied): new ChoicePair(i, j, occupied);
+            //the second one hsould be occupied not _occupied but what the hell, search sp too big
+            ChoicePair choice = first ? new ChoicePair(i,j, _occupied): new ChoicePair(i, j, _occupied);
             //is losing is on, need to add everything regardless
             if(losing) System.out.println("Losing..");//System.out.println("Honmani akan no?" + new ChoicePair(i,j).willTipWith(null));
             if(losing || !choice.willTipWith() ) possibilities.add(choice);
@@ -169,7 +168,8 @@ public class Player {
       //invert the depth = depth smaller the better -> smaller depths should give high score
       //plus heavier the better
       //the smaller the resulting possibilities,, better
-      double score = 1/(depth*node.weight);
+      //double score = 1/(depth) + node.weight + Math.abs(node.position);
+      double score = 1/(depth*node.weight);//Math.abs(node.position);
       return new Pair<Double, ChoicePair>(score, node);
     }
     for(ChoicePair choice: possibilities){
@@ -183,10 +183,9 @@ public class Player {
       }
       else{
       //System.out.println("for choice: " +choice+" new Occupied: " +newOccupied);
-      System.out.println("for choice:" + choice+" poss:"+newPossibilities);
+      //System.out.println("for choice:" + choice+" poss:"+newPossibilities);
       Pair<Double, ChoicePair> newAlpha = new Pair<Double, ChoicePair>(alpha.fst*-1, alpha.snd);//negate
-      Pair<Double, ChoicePair> newBeta = new Pair<Double, ChoicePair>(beta.fst*-1, beta.snd);//negate
-      beta = newBeta;
+      Pair<Double, ChoicePair> newBeta = new Pair<Double, ChoicePair>(beta.fst*-1, beta.snd);//negat
       Pair<Double, ChoicePair>result = alphaBeta(newOccupied, newPossibilities, newBeta, newAlpha, choice, depth);
       score = -1*result.fst; 
       }
@@ -201,10 +200,21 @@ public class Player {
   private Pair<Double, ChoicePair> alphaBetaRemove(HashMap<Integer, Integer> curr, List<ChoicePair> possibilities, Pair<Double, ChoicePair> alpha, 
       Pair<Double, ChoicePair> beta, ChoicePair node, double depth){
     depth++;
+    System.out.println("==============Depths is "+depth);
+    if(depth>7){
+      //...to big..
+      Pair<Double, ChoicePair> best = new Pair<Double,ChoicePair>(Double.MIN_VALUE, node);
+      for(ChoicePair p: possibilities){
+        double score = 1/(depth*10)+node.weight+node.position;
+        best = (score>best.fst)? new Pair<Double, ChoicePair>(score, p): best;
+      }
+      return best;
+    }
     if(possibilities.size()==0){ //TODO: rethink for remove
       //invert the depth = depth smaller the better -> small should give high score
       //plus heavier the better the smaller the resulting possibilities,, better
-      double score = 1/(depth*node.weight);
+      double score = 1/(depth*10)+node.weight+node.position;
+      //System.out.println("Score is: " + score + " with depth*node.w" + depth*node.weight);
       return new Pair<Double, ChoicePair>(score, node);
     }
     for(ChoicePair choice: possibilities){
@@ -214,18 +224,19 @@ public class Player {
       List<ChoicePair> newPossibilities = buildRemoveChoices(newOccupied,false);
       System.out.println("for choice:" + choice+" poss:"+newPossibilities);
       Pair<Double, ChoicePair> newAlpha = new Pair<Double, ChoicePair>(alpha.fst*-1, alpha.snd);//negate
-      alpha = newAlpha;
+      //alpha = newAlpha;
       Pair<Double, ChoicePair> newBeta = new Pair<Double, ChoicePair>(beta.fst*-1, beta.snd);//negate
-      beta = newBeta;
+      //beta = newBeta;
       Pair<Double, ChoicePair>result = alphaBetaRemove(newOccupied, newPossibilities, newBeta, newAlpha, choice, depth);
       double score = -1*result.fst; 
-      System.out.println("for choice:" + choice+" size of poss:"+newPossibilities.size()+" score:" + score);
-      //max(alpha, -alphabeta(...))
+  //    System.out.println("for choice:" + choice+"a"+alpha.fst+" score:" + score+" beta:" + beta.fst);
+      //max(alpha, -alphabeta(...)
       if(score>alpha.fst){
         alpha = new Pair<Double, ChoicePair>(score, choice); //keep the winner
       }
-      if (newBeta.fst<= alpha.fst) break; //don't give a fuck!
+      if (beta.fst<= alpha.fst){System.out.println("Don't give a fuck!!");break;} 
     }
+    //System.out.println("kore kaesou" + alpha.fst);
     return alpha;
   }
 
@@ -266,6 +277,14 @@ public class Player {
     @Override
     public String toString() {
       return weight+"," + position;
+    }
+  }
+  class Pair<T, S>{
+    private T fst;
+    private S snd;
+    public Pair(T fst, S snd){
+      this.fst = fst;
+      this.snd = snd;
     }
   }
 }

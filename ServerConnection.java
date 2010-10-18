@@ -19,7 +19,7 @@ public class ServerConnection implements Runnable {
   //available. Once a client uses a weight, the value changes to false.
   Hashtable<String, Boolean> weights = new Hashtable<String, Boolean>();
 
-  public ServerConnection(Socket socket) {		
+  public ServerConnection(Socket socket) {    
     super();
 
     for (int i = 1; i<=10; i++) {
@@ -31,7 +31,7 @@ public class ServerConnection implements Runnable {
       pos_wts[i] = -1;
     }
 
-    pos_wts[-4+15] = 3;	//3 kilogram block at position -4. All positions are offset by 15
+    pos_wts[-4+15] = 3; //3 kilogram block at position -4. All positions are offset by 15
 
     game.setPosition_weights(pos_wts);
     game.calculate_torque();
@@ -53,7 +53,7 @@ public class ServerConnection implements Runnable {
   }
 
   PrintWriter out;
-  BufferedReader in;	
+  BufferedReader in;  
 
   private boolean processClient() {
     out = null;
@@ -62,7 +62,7 @@ public class ServerConnection implements Runnable {
       out = new PrintWriter(socket.getOutputStream(), true);
       in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-      String inputLine;	
+      String inputLine; 
       inputLine = in.readLine() ;
 
       //if the client connects without a tag or a blank tag then the connection is refused. 
@@ -110,6 +110,9 @@ public class ServerConnection implements Runnable {
         if (!this.tag.equals(game.getCurrent_player()))
           continue;
 
+        if (game.getPlayers().size() <  2)
+          continue;
+
         String state = game.getMode() +"|" + game.getPositions() + "|in="+game.getRighttorque() + ",out="+game.getLefttorque();
         System.out.println(state);
         out.println(state);
@@ -141,6 +144,7 @@ public class ServerConnection implements Runnable {
         if (inputline.equals("Bye")) {
           System.out.println("Client " + getTag() + " terminated connection");
           out.println("Bye");
+          game.removePlayer(this.getTag());
           break;
         } 
 
@@ -152,8 +156,8 @@ public class ServerConnection implements Runnable {
             if (weights.get(res[0])) {
               int pos = Integer.parseInt(res[1]);
               if (pos >=-15 && pos<=15) {
-                if (game.getPosition_weights()[pos+15] == -1) {								
-                  game.getPosition_weights()[pos+15] = Integer.parseInt(res[0]);								
+                if (game.getPosition_weights()[pos+15] == -1) {               
+                  game.getPosition_weights()[pos+15] = Integer.parseInt(res[0]);                
                   weights.put(res[0], false);
                   game.incrementWeights_used();
                   game.calculate_torque();
@@ -161,6 +165,7 @@ public class ServerConnection implements Runnable {
                     System.out.println("in=" + game.getRighttorque() + " & out=" + game.getLefttorque());
                     out.println("TIP");
                     out.println("LOSE");
+                    game.removePlayer(this.getTag());
                     game.setGameInProgress(false);
                   }
                   else {
@@ -174,7 +179,7 @@ public class ServerConnection implements Runnable {
                   out.println("REJECT [Position already occupied]");
                 }
               } else {
-                out.println("REJECT [Invalid Position]");	
+                out.println("REJECT [Invalid Position]"); 
               }
             } else {
               out.println("REJECT [Weight Aready used]");
@@ -195,6 +200,7 @@ public class ServerConnection implements Runnable {
                 System.out.println("in=" + game.getRighttorque() + " & out=" + game.getLefttorque());
                 out.println("TIP");
                 out.println("LOSE");
+                game.removePlayer(this.getTag());
                 game.setGameInProgress(false);
               }
               else {
@@ -202,6 +208,7 @@ public class ServerConnection implements Runnable {
                 if (game.getWeights_used() < 0) {
                   out.println("LAST");
                   out.println("LOSE");
+                  game.removePlayer(this.getTag());
                   game.setGameInProgress(false);
                 }
                 game.setCurrent_player(game.nextPlayer());
@@ -223,7 +230,7 @@ public class ServerConnection implements Runnable {
     } catch (IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
-    }	
+    } 
   }
 
   public String getTag() {

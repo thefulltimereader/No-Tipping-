@@ -1,7 +1,7 @@
 import java.io.*;
 import java.net.*;
 
-public class Client {
+public class MyClient {
 
   public static void main(String[] args) throws Exception {
     Socket socket = null;

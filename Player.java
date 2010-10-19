@@ -169,10 +169,10 @@ public class Player {
   private Pair<Double, ChoicePair> alphaBeta(HashMap<Integer, Integer> curr, List<ChoicePair> possibilities, Pair<Double, ChoicePair> alpha, 
       Pair<Double, ChoicePair> beta, ChoicePair node, double depth){
     depth++;
-    if(depth==4){
+    if(depth>5){
       Pair<Double, ChoicePair> best = new Pair<Double,ChoicePair>(Double.MIN_VALUE, node);
       for(ChoicePair p: possibilities){
-        double score = 1/(depth*node.weight);//+node.position;
+        double score = 1/(possibilities.size()*p.weight+Math.abs(p.position));//+node.position;
         best = (score>best.fst)? new Pair<Double, ChoicePair>(score, p): best;
       }
       return best;
@@ -220,7 +220,7 @@ public class Player {
       //...to big..
       Pair<Double, ChoicePair> best = new Pair<Double,ChoicePair>(Double.MIN_VALUE, node);
       for(ChoicePair p: possibilities){
-        double score = 1/(depth*10)+node.weight+node.position;
+        double score = 1/(depth*10)+p.weight+p.position;
         best = (score>best.fst)? new Pair<Double, ChoicePair>(score, p): best;
       }
       return best;
@@ -228,7 +228,7 @@ public class Player {
     if(possibilities.size()==0){ //TODO: rethink for remove
       //invert the depth = depth smaller the better -> small should give high score
       //plus heavier the better the smaller the resulting possibilities,, better
-      double score = 1/(depth*10)+node.weight+node.position;
+      double score = 1/(depth*10*node.weight+Math.abs(node.position));//+node.weight+node.position;
       //System.out.println("Score is: " + score + " with depth*node.w" + depth*node.weight);
       return new Pair<Double, ChoicePair>(score, node);
     }
